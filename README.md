@@ -5,7 +5,7 @@ Práctica de implementación en C++ para la asignatura de Ingeniería del Softwa
 
 👨🏻‍💻 Componentes del grupo:
 - Rafael Carlos Díaz Mata
-- Juan Antonio Gálvez Martínez
+- Juan Antonio Gálvez Jiménez
 - Mateo Fortea Dugo
 
 ⚙️ Recursos utilizados:

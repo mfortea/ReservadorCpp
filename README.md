@@ -10,7 +10,9 @@ Práctica de implementación en C++ para la asignatura de Ingeniería del Softwa
 
 ⚙️ Recursos utilizados:
 - IDE Eclipse
-- Librería conector de BD para MariaDB (MySQL)
+- Librería conector de BD para MySQL - [X DevAPI](https://dev.mysql.com/doc/x-devapi-userguide/en/)
 - Servidor mySQL
+
+
 
 

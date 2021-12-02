@@ -24,6 +24,7 @@ private:
     bool comprobarCorreo(string correo, mysqlx::Table usuarios);
     bool comprobarClave(string clave, mysqlx::Table usuarios);
     void iniciarSesion(Reservador r, mysqlx::Table tabla);
+    void mostrarMenu();
 
 public:
     Reservador()

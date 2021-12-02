@@ -8,6 +8,12 @@
 #include <mysqlx/xdevapi.h>
 #include "app.h"
 using namespace std;
+#define RED     "\033[31m"
+#define RESET   "\033[0m"
+#define GREEN   "\033[32m"
+#define CYAN    "\033[36m"
+#define BOLDWHITE   "\033[1m\033[37m"
+#define MAGENTA "\033[35m"
 
 void leerFichero(string credenciales[])
 {
@@ -37,13 +43,13 @@ bool comprobarCorreo(string correo, mysqlx::Table usuarios)
         }
         else
         {
-            cout << "Error: El correo no existe\n";
+            cout <<RED<< "Error: El correo no existe\n"<<RESET;
             return false;
         }
     }
     else
     {
-        cout << "Error: El formato de correo no es válido\n";
+        cout <<RED<< "Error: El formato de correo no es válido\n"<<RESET;
         return false;
     }
 }
@@ -64,7 +70,7 @@ bool comprobarClave(string clave, mysqlx::Table usuarios, string correo)
     else
     {
         system("clear");
-        cout << "Credenciales incorrectas\n";
+        cout <<RED<< "Credenciales incorrectas\n"<<RESET;
         return false;
     }
 }
@@ -73,13 +79,13 @@ void iniciarSesion(Reservador r, mysqlx::Table usuarios)
 {
     while (r.getIniciado() != true)
     {
-        cout << "Introduce tu correo: ";
+        cout <<BOLDWHITE<< "Introduce tu correo: "<<RESET;
         string correo;
         cin >> correo;
         r.setCorreo(correo);
         if (comprobarCorreo(correo, usuarios))
         {
-            cout << "Contraseña: ";
+            cout <<BOLDWHITE<< "Contraseña: "<<RESET;
             string clave;
             cin >> clave;
             if (comprobarClave(clave, usuarios, r.getCorreo()))
@@ -90,9 +96,24 @@ void iniciarSesion(Reservador r, mysqlx::Table usuarios)
     }
 }
 
+void mostrarMenu(){
+    int opcion = -1;
+    system("clear");
+    do {
+        cout <<CYAN<< "========||  R E S E R V A D O R  ||======== \n\n"<<RESET;
+    	cout<<MAGENTA<<" 1)"<<RESET<<" Hacer reserva\n"<<MAGENTA<<" 2)"<<RESET<<" Mis Reservas\n"<<MAGENTA<<" 0)"<<RESET<<" Salir\n\n-> Usuario, elige una opción (0-2): ";
+        cin>>opcion;
+        if (opcion < 0 | opcion > 2 ) {
+        	cout<<RED<<"\n\nERROR: Introduce una opción entre 0 y 2\n\n"<<RESET;
+        }
+    } while (opcion != 0);
+
+}
+
 // MAIN()
 int main()
 {
+	system("clear");
     Reservador r = Reservador();
     string credenciales[3];
     leerFichero(credenciales);
@@ -103,29 +124,28 @@ int main()
 
         try
         {
-            cout << "-> Conexión establecida [√]\n\n";
+            cout <<GREEN<< "-> Conexión establecida [√]\n\n"<<RESET;
             mysqlx::Schema bd = conexion.getSchema(credenciales[2]);
             mysqlx::Table usuarios = bd.getTable("usuarios");
-            cout << "--------| Iniciar sesión |--------\n";
+            cout <<CYAN<< "--------| Iniciar sesión |--------\n"<<RESET;
 
             iniciarSesion(r, usuarios);
+            mostrarMenu();
             // Aqui se crea el objeto usuario a partir del correo guardado
-            system("clear");
-            cout << "========||  R E S E R V A D O R  ||======== \n\n";
-            cout << "### [Nombre] elige una opción (0-2)\n";
+
             exit(0);
         }
         catch (const mysqlx::Error &err)
         {
-            cout << "Ha ocurrido un error con la base de datos:\n " << err
-                 << endl;
+            cout <<RED<<"Ha ocurrido un error con la base de datos:\n " << err
+                 <<RESET<<endl;
             exit(1);
         }
     }
     catch (const mysqlx::Error &err)
     {
-        cout << "Error de conexión con la base de datos \n"
-             << endl;
+        cout <<RED<< "Error de conexión con la base de datos \n"
+             <<RESET<<endl;
         exit(1);
     }
 }

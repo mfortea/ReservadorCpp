@@ -43,13 +43,13 @@ bool comprobarCorreo(string correo, mysqlx::Table usuarios)
         }
         else
         {
-            cout <<RED<< "Error: El correo no existe\n"<<RESET;
+            cout <<RED<< "⚠️  Error: El correo no existe\n"<<RESET;
             return false;
         }
     }
     else
     {
-        cout <<RED<< "Error: El formato de correo no es válido\n"<<RESET;
+        cout <<RED<< "⚠️  Error: El formato de correo no es válido\n"<<RESET;
         return false;
     }
 }
@@ -69,8 +69,7 @@ bool comprobarClave(string clave, mysqlx::Table usuarios, string correo)
     }
     else
     {
-        system("clear");
-        cout <<RED<< "Credenciales incorrectas\n"<<RESET;
+        cout <<RED<< " ⚠️  Credenciales incorrectas\n"<<RESET;
         return false;
     }
 }
@@ -103,8 +102,24 @@ void mostrarMenu(){
         cout <<CYAN<< "========||  R E S E R V A D O R  ||======== \n\n"<<RESET;
     	cout<<MAGENTA<<" 1)"<<RESET<<" Hacer reserva\n"<<MAGENTA<<" 2)"<<RESET<<" Mis Reservas\n"<<MAGENTA<<" 0)"<<RESET<<" Salir\n\n-> Usuario, elige una opción (0-2): ";
         cin>>opcion;
-        if (opcion < 0 | opcion > 2 ) {
-        	cout<<RED<<"\n\nERROR: Introduce una opción entre 0 y 2\n\n"<<RESET;
+        switch(opcion) {
+        case 1: {
+        	int opcion1 = -1;
+        	system("clear");
+            cout <<CYAN<< "========||  1 - NUEVA RESERVA  ||======== \n\n"<<RESET;
+            cin>>opcion1;
+        	break;
+        }
+        case 2: {
+           	int opcion2 = -1;
+        	system("clear");
+            cout <<CYAN<< "========||  2 - MIS RESERVAS  ||======== \n\n"<<RESET;
+            cin>>opcion2;
+        	break;
+        }
+        default:{
+        	cout<<RED<<"\n\n ⚠️  ERROR: Introduce una opción entre 0 y 2\n\n"<<RESET;
+        }
         }
     } while (opcion != 0);
 
@@ -137,15 +152,14 @@ int main()
         }
         catch (const mysqlx::Error &err)
         {
-            cout <<RED<<"Ha ocurrido un error con la base de datos:\n " << err
+            cout <<RED<<"⚠️  ERROR: Ha ocurrido un error con la base de datos:\n " << err
                  <<RESET<<endl;
             exit(1);
         }
     }
     catch (const mysqlx::Error &err)
     {
-        cout <<RED<< "Error de conexión con la base de datos \n"
-             <<RESET<<endl;
+    	cout <<RED<< "-> ⚠️  ERROR: No se ha podido conectar a la base de datos [X]\n\n"<<RESET;
         exit(1);
     }
 }

@@ -103,6 +103,9 @@ void mostrarMenu(){
     	cout<<MAGENTA<<" 1)"<<RESET<<" Hacer reserva\n"<<MAGENTA<<" 2)"<<RESET<<" Mis Reservas\n"<<MAGENTA<<" 0)"<<RESET<<" Salir\n\n-> Usuario, elige una opción (0-2): ";
         cin>>opcion;
         switch(opcion) {
+        case 0:{
+        	break;
+        }
         case 1: {
         	int opcion1 = -1;
         	system("clear");

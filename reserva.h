@@ -19,6 +19,9 @@ private:
     string motivo_reserva_;
 
 public:
+    Reserva()
+    {
+    }
     Reserva(int ID, int usuario_id, int maquina_id, string fecha_inicio, string fecha_fin, int num_nucleos, string motivo_reserva)
     {
         ID_ = ID;

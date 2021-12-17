@@ -7,6 +7,7 @@
 #include <regex>
 #include <mysqlx/xdevapi.h>
 #include "usuario.h"
+#include "maquina.h"
 
 using namespace std;
 
@@ -26,7 +27,9 @@ private:
     void iniciarSesion(Reservador &r, mysqlx::Table tabla);
     void mostrarMenu(Reservador r, mysqlx::Table reservas);
     void cargarUsuario(Reservador &r, mysqlx::Table usuarios);
-    void mostrarReservas(Reservador r, mysqlx::Table reservas);
+    Maquina obtenerMaquina(int id, mysqlx::Table maquinas);
+    void mostrarReservas(Reservador r, mysqlx::Table reservas, mysqlx::Table maquinas);
+
 
 public:
     Reservador()

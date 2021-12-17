@@ -9,6 +9,8 @@
 #include "app.h"
 #include "usuario.h"
 #include "reserva.h"
+#include "maquina.h"
+
 using namespace std;
 #define RED "\033[31m"
 #define RESET "\033[0m"
@@ -112,25 +114,47 @@ void cargarUsuario(Reservador &r, mysqlx::Table usuarios)
     r.setUsuario(u);
 }
 
-void mostrarReservas(Reservador r, mysqlx::Table reservas)
+Maquina obtenerMaquina(int id, mysqlx::Table maquinas)
 {
-    int id = r.getUsuario().getID();
-    mysqlx::RowResult res = reservas.select("ID", "usuario", "maquina", "fecha_inicio", "fecha_fin", "num_nucleos", "motivo_reserva")
+    mysqlx::RowResult res = maquinas.select("ID", "nombre_maquina", "nucleos", "ram")
                                 .where("ID like :entrada")
                                 .bind("entrada", id)
                                 .execute();
-    for (Row fila : res.fetchAll())
-    {
-        cout << fila[1] << endl;
-    }
+    mysqlx::Row fila = res.fetchOne();
+    Maquina m = Maquina((int)fila[0], (string)fila[1], (int)fila[2], (int)fila[3]);
+    return m;
 }
 
-void mostrarMenu(Reservador r, mysqlx::Table reservas)
+void mostrarReservas(Reservador r, mysqlx::Table reservas, mysqlx::Table maquinas)
+{
+    int id = r.getUsuario().getID();
+    mysqlx::RowResult res = reservas.select("ID", "usuario", "maquina", "fecha_inicio", "fecha_fin", "num_nucleos", "motivo_reserva")
+                                .where("usuario like :entrada")
+                                .bind("entrada", id)
+                                .execute();
+    int nReservas = 0;
+    for (mysqlx::Row fila : res.fetchAll())
+    {
+        nReservas++;
+        Maquina m = obtenerMaquina((int)fila[2], maquinas);
+        cout << MAGENTA << fila[0] << ")" << RESET << GREEN << " Máquina: " << RESET << m.getNombreMaquina() << GREEN << "\n   Fecha: " << RESET << " Del " << fila[3] << " hasta " << fila[4] << GREEN << "\n   Núcleos: " << RESET << fila[5] << GREEN << "\n   Motivo: " << RESET << fila[6] << "\n\n";
+    }
+    if (nReservas == 0)
+    {
+        cout << "NO HAY RESERVAS\n\n";
+    }
+    cout << MAGENTA << "0)" << RESET << " Salir\n\n-> "
+         << "Elige una opción: ";
+    int opcion = -1;
+    cin >> opcion;
+}
+
+void mostrarMenu(Reservador r, mysqlx::Table reservas, mysqlx::Table maquinas)
 {
     int opcion = -1;
-    system("clear");
     do
     {
+        system("clear");
         cout << CYAN << "========||  R E S E R V A D O R  ||======== \n\n"
              << RESET;
         cout << MAGENTA << " 1)" << RESET << " Hacer reserva\n"
@@ -158,7 +182,7 @@ void mostrarMenu(Reservador r, mysqlx::Table reservas)
             system("clear");
             cout << CYAN << "========||  2 - MIS RESERVAS  ||======== \n\n"
                  << RESET;
-            mostrarReservas(r, reservas);
+            mostrarReservas(r, reservas, maquinas);
             cin >> opcion2;
             break;
         }
@@ -176,27 +200,30 @@ int main()
 {
     system("clear");
     Reservador r = Reservador();
-    string credenciales[3];
+    string credenciales[4];
     leerFichero(credenciales);
 
     try
     {
-        mysqlx::Session conexion(33060, credenciales[0], credenciales[1]);
+        mysqlx::Session conexion(mysqlx::SessionOption::HOST, credenciales[0],
+                                 mysqlx::SessionOption::PORT, 33060,
+                                 mysqlx::SessionOption::USER, credenciales[1],
+                                 mysqlx::SessionOption::PWD, credenciales[2]);
 
         try
         {
             cout << GREEN << "-> Conexión establecida [√]\n\n"
                  << RESET;
-            mysqlx::Schema bd = conexion.getSchema(credenciales[2]);
+            mysqlx::Schema bd = conexion.getSchema(credenciales[3]);
             mysqlx::Table usuarios = bd.getTable("usuarios");
             mysqlx::Table reservas = bd.getTable("reservas");
+            mysqlx::Table maquinas = bd.getTable("maquinas");
             cout << CYAN << "--------| Iniciar sesión |--------\n"
                  << RESET;
 
             iniciarSesion(r, usuarios);
             cargarUsuario(r, usuarios);
-            mostrarMenu(r, reservas);
-
+            mostrarMenu(r, reservas, maquinas);
             exit(0);
         }
         catch (const mysqlx::Error &err)

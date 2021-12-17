@@ -8,6 +8,7 @@
 #include <mysqlx/xdevapi.h>
 #include "app.h"
 #include "usuario.h"
+#include "reserva.h"
 using namespace std;
 #define RED "\033[31m"
 #define RESET "\033[0m"
@@ -111,7 +112,20 @@ void cargarUsuario(Reservador &r, mysqlx::Table usuarios)
     r.setUsuario(u);
 }
 
-void mostrarMenu(Reservador r)
+void mostrarReservas(Reservador r, mysqlx::Table reservas)
+{
+    int id = r.getUsuario().getID();
+    mysqlx::RowResult res = reservas.select("ID", "usuario", "maquina", "fecha_inicio", "fecha_fin", "num_nucleos", "motivo_reserva")
+                                .where("ID like :entrada")
+                                .bind("entrada", id)
+                                .execute();
+    for (Row fila : res.fetchAll())
+    {
+        cout << fila[1] << endl;
+    }
+}
+
+void mostrarMenu(Reservador r, mysqlx::Table reservas)
 {
     int opcion = -1;
     system("clear");
@@ -144,6 +158,7 @@ void mostrarMenu(Reservador r)
             system("clear");
             cout << CYAN << "========||  2 - MIS RESERVAS  ||======== \n\n"
                  << RESET;
+            mostrarReservas(r, reservas);
             cin >> opcion2;
             break;
         }
@@ -174,12 +189,13 @@ int main()
                  << RESET;
             mysqlx::Schema bd = conexion.getSchema(credenciales[2]);
             mysqlx::Table usuarios = bd.getTable("usuarios");
+            mysqlx::Table reservas = bd.getTable("reservas");
             cout << CYAN << "--------| Iniciar sesión |--------\n"
                  << RESET;
 
             iniciarSesion(r, usuarios);
             cargarUsuario(r, usuarios);
-            mostrarMenu(r);
+            mostrarMenu(r, reservas);
 
             exit(0);
         }

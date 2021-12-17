@@ -24,17 +24,17 @@ public:
     Usuario()
     {
     }
-        Usuario(int ID, string nombre, string apellidos, string correo, string pass, string departamento, int limite_maquinas, int limite_cpus, int limite_reservas)
+    Usuario(int ID, string nombre, string apellidos, string correo, string pass, string departamento, int limite_maquinas, int limite_cpus, int limite_reservas)
     {
         ID_ = ID;
-        nombre_=nombre;
-        apellidos_=apellidos;
-        correo_=correo;
-        pass_=pass;
-        departamento_=departamento;
-        limite_maquinas_=limite_maquinas;
-        limite_cpus_=limite_cpus;
-        limite_reservas_=limite_reservas;
+        nombre_ = nombre;
+        apellidos_ = apellidos;
+        correo_ = correo;
+        pass_ = pass;
+        departamento_ = departamento;
+        limite_maquinas_ = limite_maquinas;
+        limite_cpus_ = limite_cpus;
+        limite_reservas_ = limite_reservas;
     }
 
     // Getters

@@ -21,6 +21,7 @@ private:
     int limite_reservas_;
 
 public:
+    // Constructor
     Usuario()
     {
     }

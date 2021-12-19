@@ -1,18 +1,20 @@
 // app.cc
 // Desarrollo de los métodos de la clase Reservador
-// Author: Mateo Fortea Dugo
+
 #include <iostream>
 #include <string>
 #include <fstream>
 #include <unistd.h>
 #include <regex>
 #include <mysqlx/xdevapi.h>
-#include "app.h"
+#include "reservador.h"
 #include "usuario.h"
 #include "reserva.h"
 #include "maquina.h"
 
 using namespace std;
+
+// Definición de los colores del terminal
 #define RED "\033[31m"
 #define RESET "\033[0m"
 #define GREEN "\033[32m"
@@ -482,7 +484,7 @@ void mostrarMenu(Reservador r, mysqlx::Table reservas, mysqlx::Table maquinas)
     } while (opcion != 0);
 }
 
-// MAIN()
+// Método main() - Ejecución del programa
 int main()
 {
     system("clear");
@@ -502,6 +504,7 @@ int main()
             cout << GREEN << "-> Conexión establecida [√]\n\n"
                  << RESET;
             mysqlx::Schema bd = conexion.getSchema(credenciales[3]);
+            // Tablas de la BD
             mysqlx::Table usuarios = bd.getTable("usuarios");
             mysqlx::Table reservas = bd.getTable("reservas");
             mysqlx::Table maquinas = bd.getTable("maquinas");

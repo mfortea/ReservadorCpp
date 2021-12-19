@@ -19,6 +19,7 @@ private:
     string motivo_reserva_;
 
 public:
+    // Constructor
     Reserva()
     {
     }

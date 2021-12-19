@@ -16,6 +16,7 @@ private:
     int ram_;
 
 public:
+    // Constructor
     Maquina(int ID, string nombreMaquina, int nucleos, int ram)
     {
         ID_ = ID;

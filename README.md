@@ -30,6 +30,8 @@ LDLIBS = -lmysqlcppconn8
 CXXFLAGS = -std=c++11
 app : app.cc
 ```
+### ✅ Test Unitarios
+Los tests unitarios han sido desarrollados a través de la librería CUTE instalada como plugin en Eclipse. Se encuentran como un proyecto aparte en la carpeta ```ReservadorTests```, donde se han testado tanto los constructores de las distintas clases, como distintos métodos de comprobaciones dentro del sistema.
 
 ### 🔌  Fichero de conexión
 Para conectarse a la base de datos, se hace uso de un fichero como método de almacenamiento de las credenciales. Para que el sistema reconozca las credenciales, deberá crear un fichero de texto plano nombrado como "bd.txt" en la misma ruta que su ejecutable, dicho fichero contendrá las credenciales en este mismo orden:

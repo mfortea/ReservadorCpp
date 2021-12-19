@@ -88,17 +88,82 @@ bool comprobarClave(string clave, mysqlx::Table usuarios, string correo)
 bool comprobarFormatoFecha(string fecha)
 {
     const regex patronFecha("^[0-3]?[0-9]/[0-3]?[0-9]/(?:[0-9]{2})?[0-9]{2}$");
-    if (regex_match(fecha, patronFecha))
+    string anio = fecha.substr(6, 4);
+    time_t t = time(NULL);
+    tm *timePtr = localtime(&t);
+    stringstream ss_anio;
+    ss_anio << timePtr->tm_year + 1900;
+    string anio_actual = ss_anio.str();
+
+    if (regex_match(fecha, patronFecha) && anio >= anio_actual)
     {
         return true;
     }
     else
     {
         cout << '\a';
-        cout << RED << "⚠️  Error: El formato de la fecha no es válido\n"
+        cout << RED << "⚠️  Error: La fecha no es válida\n"
              << RESET;
         return false;
     }
+}
+
+bool comprobarFecha(string fecha, Reservador r, mysqlx::Table reservas)
+{
+    bool hueco = false;
+    string anio = fecha.substr(6, 4);
+    string mes = fecha.substr(3, 2);
+    int dia = stoi(fecha.substr(0, 2));
+
+    mysqlx::RowResult res = reservas.select("fecha_inicio", "fecha_fin")
+                                .where("maquina like :entrada")
+                                .bind("entrada", r.getReserva().getMaquinaID())
+                                .execute();
+
+    int nReservas = 0;
+    for (mysqlx::Row fila : res.fetchAll())
+    {
+        nReservas++;
+        string fecha_inicio = (string)fila[0];
+        string fecha_fin = (string)fila[1];
+
+        string anio_fecha_inicio = fecha_inicio.substr(6, 4);
+        string mes_fecha_inicio = fecha_inicio.substr(3, 2);
+        int dia_fecha_inicio = stoi(fecha_inicio.substr(0, 2));
+
+        string anio_fecha_fin = fecha_fin.substr(6, 4);
+        string mes_fecha_fin = fecha_fin.substr(3, 2);
+        int dia_fecha_fin = stoi(fecha_fin.substr(0, 2));
+
+        if (anio_fecha_inicio == anio && mes_fecha_inicio == mes)
+        {
+            if (dia >= dia_fecha_inicio && dia <= dia_fecha_fin)
+            {
+                hueco = false;
+            }
+            else
+            {
+                hueco = true;
+            }
+        }
+        else
+        {
+            hueco = true;
+        }
+    }
+
+    if (nReservas == 0)
+    {
+        hueco = true;
+    }
+
+    if (hueco == false)
+    {
+        cout << RED << "\nERROR: Esa fecha ya está ocupada\n"
+             << RESET;
+    }
+
+    return hueco;
 }
 
 void iniciarSesion(Reservador &r, mysqlx::Table usuarios)
@@ -191,12 +256,11 @@ void seleccionarMaquina(Reservador &r, mysqlx::Table maquinas)
         cout << "\a";
         cout << "NO HAY MÁQUINAS\n\n";
     }
-    //cout << MAGENTA << "\n 0)" << RESET << " Salir\n";
     bool encontrado = false;
     int opcionMaquina = -1;
     do
     {
-        cout<<"\a";
+        cout << "\a";
         cout << "-> Elige una máquina para hacer la reserva: ";
         cin >> opcionMaquina;
 
@@ -214,15 +278,34 @@ void seleccionarMaquina(Reservador &r, mysqlx::Table maquinas)
     } while (encontrado != true);
 }
 
-void seleccionarFechas(Reservador &r)
+void seleccionarFechas(Reservador &r, mysqlx::Table reservas)
 {
+    system("clear");
+    mysqlx::RowResult res = reservas.select("ID", "usuario", "maquina", "fecha_inicio", "fecha_fin", "num_nucleos", "motivo_reserva")
+                                .where("maquina like :entrada")
+                                .bind("entrada", r.getReserva().getMaquinaID())
+                                .execute();
+    int nReservas = 0;
+    cout << CYAN << "\nReservas de la máquina\n========================\n\n"
+         << RESET;
+    for (mysqlx::Row fila : res.fetchAll())
+    {
+        nReservas++;
+        cout << RED << "* " << RESET "Máquina ocupada del " << fila[3] << " al " << fila[4] << "\n";
+    }
+    if (nReservas == 0)
+    {
+        cout << GREEN << "La máquina está libre de reservas\n"
+             << RESET;
+    }
+
     bool correcta = false;
     while (correcta != true)
     {
         cout << "\n-> Introduce una fecha de inicio (dd/mm/aaaa): ";
         string fechaInicio;
         cin >> fechaInicio;
-        if (comprobarFormatoFecha(fechaInicio))
+        if (comprobarFormatoFecha(fechaInicio) && comprobarFecha(fechaInicio, r, reservas))
         {
             correcta = true;
             Reserva reserva = Reserva();
@@ -238,7 +321,7 @@ void seleccionarFechas(Reservador &r)
         cout << "\n-> Introduce una fecha de fin (dd/mm/aaaa): ";
         string fechaFin;
         cin >> fechaFin;
-        if (comprobarFormatoFecha(fechaFin))
+        if (comprobarFormatoFecha(fechaFin) && comprobarFecha(fechaFin, r, reservas))
         {
             correcta = true;
             Reserva reserva = Reserva();
@@ -250,17 +333,46 @@ void seleccionarFechas(Reservador &r)
     }
 }
 
-void seleccionarNucleos(Reservador &r)
+int obtenerNucleosReales(Reservador r, mysqlx::Table reservas, mysqlx::Table maquinas)
 {
-    cout << "\n La máquina tiene libre " << GREEN << "X núcleos" << RESET << "\n\n";
-    // if (nucleos > nucleosLibres) -> dar un error
+    int nucleosMaquina = 0;
+    mysqlx::RowResult res = maquinas.select("nucleos")
+                                .where("ID like :entrada")
+                                .bind("entrada", r.getReserva().getMaquinaID())
+                                .execute();
+    mysqlx::Row fila = res.fetchOne();
+    nucleosMaquina = (int)fila[0];
+
+    mysqlx::RowResult res2 = reservas.select("num_nucleos")
+                                 .where("maquina like :entrada")
+                                 .bind("entrada", r.getReserva().getMaquinaID())
+                                 .execute();
+
+    int nucleosReservados = 0;
+    for (mysqlx::Row fila : res2.fetchAll())
+    {
+        nucleosReservados += (int)fila[0];
+    }
+
+    return (nucleosMaquina - nucleosReservados);
+}
+
+void seleccionarNucleos(Reservador &r, mysqlx::Table reservas, mysqlx::Table maquinas)
+{
+    int nucleos_reales = obtenerNucleosReales(r, reservas, maquinas);
+    if (nucleos_reales == 0)
+    {
+        cout << RED << " La máquina NO tiene núcleos libres" << RESET << endl;
+    }
+
+    cout << "\n La máquina tiene libre " << GREEN << nucleos_reales << " núcleos" << RESET << "\n\n";
     bool correcto = false;
     while (correcto != true)
     {
         cout << "-> Introduce la cantidad de núcleos a reservar: ";
         int nucleos;
         cin >> nucleos;
-        if (nucleos > 1)
+        if (nucleos > 1 && nucleos <= nucleos_reales)
         {
             Reserva reserva = Reserva();
             reserva.setMaquinaID(r.getReserva().getMaquinaID());
@@ -305,14 +417,14 @@ bool subirReservaBD(Reservador r, mysqlx::Table reservas)
 void hacerReservas(Reservador r, mysqlx::Table reservas, mysqlx::Table maquinas)
 {
     seleccionarMaquina(r, maquinas);
-    seleccionarFechas(r);
-    seleccionarNucleos(r);
+    seleccionarFechas(r, reservas);
+    seleccionarNucleos(r, reservas, maquinas);
     seleccionarMotivo(r);
     if (subirReservaBD(r, reservas))
     {
         cout << '\a';
         cout << '\a';
-        cout << '\a';
+        system("clear");
         cout << GREEN << "\n\n====|| RESERVA REALIZADA CON ÉXITO ✅ ||====" << RESET << "\n\n";
         cout << CYAN << "Ha reservado la máquina " << r.getReserva().getMaquinaID() << " entre el día " << r.getReserva().getFechaInicio() << " y el " << r.getReserva().getFechaFin() << RESET << "\n\n";
         cout << "Volviendo al menú ...\n\n";

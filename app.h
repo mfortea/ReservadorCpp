@@ -33,8 +33,12 @@ private:
     Maquina obtenerMaquina(int id, mysqlx::Table maquinas);
     void mostrarReservas(Reservador r, mysqlx::Table reservas, mysqlx::Table maquinas);
     void seleccionarMaquina(Reservador r, mysqlx::Table maquinas);
-    void seleccionarFechas(Reservador r);
-    void seleccionarNucleos(Reservador r);
+    void seleccionarFechas(Reservador r, mysqlx::Table reservas);
+    bool comprobarFormatoFecha(string fecha);
+    bool comprobarFechaInicio(string fechaInicio, Reservador r, mysqlx::Table reservas);
+    bool comprobarFechaFin(string fechaInicio, Reservador r, mysqlx::Table reservas);
+    int obtenerNucleosReales(Reservador r, mysqlx::Table reservas, mysqlx::Table maquinas);
+    void seleccionarNucleos(Reservador r, mysqlx::Table reservas, mysqlx::Table maquinas);
     void seleccionarMotivo(Reservador r);
     bool subirReservaBD(Reservador r, mysqlx::Table reservas);
 
